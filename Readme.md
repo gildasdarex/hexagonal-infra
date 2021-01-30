@@ -35,7 +35,7 @@ Set Postrgres users and password in deployment_values.yaml file
 For registry env variable please , use your own docker registry and login with docker login command
 ```
  export registry = hexagonal/jenkins
- export tag = 1.0
+ export tag = v1.0
  docker build -t $registry:$tag .
  docker tag  $registry:$tag
  docker push $registry:$tag
