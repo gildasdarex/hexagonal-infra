@@ -1,0 +1,78 @@
+# Setting host
+- hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Create a backend app configmap
+      community.kubernetes.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: ConfigMap
+          metadata:
+            name: hexagonal-app-config
+            namespace: "{{ namespace }}"
+            labels:
+              app: hexagonal-app
+          data:
+            HOST: "{{ app_host }}"
+            PORT: "{{ app_port }}"
+            ASSET_HOST: "http://{{ app_host }}:{{ app_port }}"
+            DATABASE_USER: "{{ app_db_user }}"
+            DATABASE_HOST: "{{ app_db_host }}"
+            DATABASE_PASSWORD: "{{ app_db_password }}"
+            DATABASE: "{{ app_db_name }}"
+            RAILS_RELATIVE_URL_ROOT: "{{ app_url_prefix }}"
+    - name: Create a backend app deployment
+      community.kubernetes.k8s:
+        state: present
+        definition:
+          kind: Deployment
+          apiVersion: apps/v1
+          metadata:
+            name: hexagonal-app
+            namespace: "{{ namespace }}"
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                app: hexagonal-app
+                version: v01
+            template:
+              metadata:
+                labels:
+                  app: hexagonal-app
+                  version: v01
+              spec:
+                containers:
+                  - name: hexagonalapp
+                    image: "{{ registry }}:{{tag }}"
+                    command:
+                      - bash
+                      - "-c"
+                      - "rm -f tmp/pids/server.pid && bundle exec rails db:migrate &&  bundle exec rails s -p 3000 -b '0.0.0.0'"
+                    envFrom:
+                      - configMapRef:
+                          name: hexagonal-app-config
+                    ports:
+                      - containerPort: 3000
+    - name: Create a backend app service
+      community.kubernetes.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Service
+          metadata:
+            labels:
+              app: hexagonal-app
+            name: hexagonal-app
+            namespace: "{{ namespace }}"
+          spec:
+            ports:
+              - name: http
+                port: 3000
+                protocol: TCP
+                targetPort: 3000
+                nodePort: 31325
+            selector:
+              app: hexagonal-app
+            type: NodePort
