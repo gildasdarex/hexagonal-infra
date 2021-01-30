@@ -52,3 +52,23 @@ a service account jenkins-sa will be created
 ```
  helm install ci-jenkins -f jenkins_deployment_values.yaml ./jenkins-k8s/helm/jenkins-k8s --set image.repository=$registry --set image.tag=$tag --set replicaCount=1 --namespace hexagonal-test
 ```
+
+
+#### III - DEPLOY INGRESS CONTROLLER
+
+```
+ cd infra/ingress
+```
+
+####### 1 - Deploy Nginx Ingress Controller
+```
+ helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+ helm repo update
+ helm install nginx-hexagonal-controller -f deployment_values.yaml ingress-nginx/ingress-nginx --namespace hexagonal-test
+ kubectl apply hexagonal-ingress.yaml
+```
+
+####### 2 - Deploy Ingress
+```
+ kubectl apply hexagonal-ingress.yaml
+```
