@@ -1,0 +1,22 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: hexagonal-ingress
+  namespace: hexagonal-test
+#  annotations:
+#    nginx.ingress.kubernetes.io/rewrite-target: "/jenkins"
+#    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+#    nginx.ingress.kubernetes.io/configuration-snippet: |
+#        rewrite ^(/jenkins)$  http_host$1/ permanent;
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /jenkins
+            backend:
+              serviceName: ci-jenkins-jenkins-k8s
+              servicePort: 80
+          - path: /web
+            backend:
+              serviceName: hexagonal-app
+              servicePort: 3000
